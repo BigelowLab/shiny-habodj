@@ -52,9 +52,14 @@ ui <- navbarPage(
              ),
              mainPanel(
                plotlyOutput("dynamic_plot"),
-               h5(paste("yellow point", "= small island developing state (SIDS)")),
+               tags$h5(paste("yellow point", "= small island developing state (SIDS)")),
                h5(paste("blue circle", "= least developed country (LDC)")),
-               h5(paste("Logged database record counts are log10(n+1); all others are log10(n)"))
+               h5(paste("Logged database record counts are log10(n+1); all others are log10(n)")),
+               tags$br(),
+               tags$h5("Figure 2 selections"),
+               tableOutput("figure_2"),
+               tags$h5("FIgure 3 selections"),
+               tableOutput("figure_3")
              )
            )),
   #tabPanel("HAB Record"),
@@ -158,6 +163,17 @@ server <- function(input, output) {
       ggplotly(p, tooltip = "text")
       
     })
+    
+    output$figure_2 <- renderTable({
+      tibble(x = c("GDP per capita (log)", "GDP per capita (log)", "GDP per capita (log)"),
+             y = c("OBIS HAB records (log)", "Algaebase records (log)", "HAEDAT records (log)"))
+    })
+    
+    output$figure_3 <- renderTable({
+      tibble(x = c("Coastline length per capita (log)", "EEZ size per capita (log)", "GDP per capita (log)"),
+             y = c("HAB forecast scholar hits per capita (log)", "HAB forecast scholar hits per capita (log)", "HAB forecast scholar hits per capita (log)"))
+    })
+    
     
     output$table <- DT::renderDataTable(
       DT::datatable({
