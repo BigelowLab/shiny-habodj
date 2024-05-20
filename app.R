@@ -1,14 +1,16 @@
 ## Shiny app designed to explore HAB Ocean Data Justice research results
 
-library(shiny)
-
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(ggpubr)
-library(plotly)
-
-library(markdown)
+suppressPackageStartupMessages({
+  library(shiny)
+  
+  library(readr)
+  library(dplyr)
+  library(ggplot2)
+  library(ggpubr)
+  library(plotly)
+  
+  library(markdown)
+})
 
 file <- "odj-obis-haedat_2023-11-8.tsv"
 
@@ -150,15 +152,15 @@ server <- function(input, output) {
       #z <- plotdata()
       #ct <- cor(x = z[[input$x]], y = z[[input$y]])
 
-      p <- ggplot(data=plotdata(), aes(x = get(input$x), y = get(input$y))) +
-        geom_point(shape=21, aes(size=1, colour = factor(`LDC`), fill=factor(`SIDS (1-car, 2-pac, 3-aims)`), text=paste0("Country:", `Country Name`, sep=" "))) +
+      p <- ggplot(data=plotdata(), aes(x = get(input$x), y = get(input$y), text=paste0("Country:", `Country Name`, sep=" "))) +
+        geom_point(shape=21, aes(size=1, colour = factor(`LDC`), fill=factor(`SIDS (1-car, 2-pac, 3-aims)`))) +
         scale_fill_manual("SID", values = c("gray", "yellow", "yellow", "yellow")) +
         scale_color_manual(values = c("gray", "blue")) +
         xlab(xvar_name) +
         ylab(yvar_name) +
         stat_cor(na.rm=TRUE, label.x.npc = "center", output.type = "text") +
         theme_classic() +
-        guides(color=FALSE, size=FALSE, fill=FALSE)
+        guides(color=FALSE, size=FALSE, fill=FALSE, scale="none")
 
       ggplotly(p, tooltip = "text")
       
