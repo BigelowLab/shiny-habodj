@@ -66,7 +66,8 @@ ui <- navbarPage(
            )),
   #tabPanel("HAB Record"),
   tabPanel("Data Table",
-           DT::dataTableOutput("table"))
+           DT::dataTableOutput("table"),
+           downloadButton("downloadData", "Download Data Here"))
 )
 
 server <- function(input, output) {
@@ -183,6 +184,16 @@ server <- function(input, output) {
         data
       })
     )
+    
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        paste("hab_odj_data_", Sys.Date(), ".csv", sep="")
+      },
+      content = function(file) {
+        write_csv(x, file)
+      }
+    )
+    
 }
 
 shinyApp(ui = ui, server = server)
