@@ -14,7 +14,7 @@ suppressPackageStartupMessages({
 
 file <- "odj-obis-haedat_2023-11-8.tsv"
 
-x <- suppressMessages(read_tsv(file))
+x <- suppressMessages(read_tsv(file)) 
 
 axis_vars <- c(
   "Coastline Length (km)" = "coastline (world factbook km)",
@@ -115,15 +115,19 @@ server <- function(input, output) {
     ## {{ input$x }} := blah
     
     plotdata <- reactive({
+      
+      pdata = mutate(x, 
+                     `SIDS (1-car, 2-pac, 3-aims)` = ifelse(`SIDS (1-car, 2-pac, 3-aims)` %in% c(1,2,3), TRUE, FALSE),
+                     LDC = ifelse(LDC == 1, TRUE, FALSE))
       #x variable
       if (input$log_x & input$x_per_capita) {
-        x <- x |>
+        pdata<- pdata|>
           dplyr::mutate(!!input$x := log10((.data[[input$x]]/x$`Population 2020`)+as.numeric(log_add[[input$x]])))
       } else if (input$x_per_capita) {
-        x <- x |>
+        pdata<- pdata|>
           dplyr::mutate(!!input$x := .data[[input$x]]/x$`Population 2020`)
       } else if (input$log_x) {
-        x <- x |>
+        pdata<- pdata|>
           dplyr::mutate(!!input$x := log10(.data[[input$x]]+as.numeric(log_add[[input$x]])))
       } else {
         x
@@ -131,13 +135,13 @@ server <- function(input, output) {
       
       #y variable
       if (input$log_y & input$y_per_capita) {
-        x <- x |>
+        pdata<- pdata|>
           dplyr::mutate(!!input$y := log10((.data[[input$y]]/x$`Population 2020`)+as.numeric(log_add[[input$y]])))
       } else if (input$y_per_capita) {
-        x <- x |>
+        pdata<- pdata|>
           dplyr::mutate(!!input$y := .data[[input$y]]/x$`Population 2020`)
       } else if (input$log_y) {
-        x <- x |>
+        pdata<- pdata|>
           dplyr::mutate(!!input$y := log10(.data[[input$y]]+as.numeric(log_add[[input$y]])))
       } else {
         x
@@ -153,18 +157,22 @@ server <- function(input, output) {
       #z <- plotdata()
       #ct <- cor(x = z[[input$x]], y = z[[input$y]])
 
-      p <- ggplot(data=plotdata(), aes(x = get(input$x), y = get(input$y), text=paste0("Country:", `Country Name`, sep=" "))) +
-        geom_point(shape=21, aes(size=1, colour = factor(`LDC`), fill=factor(`SIDS (1-car, 2-pac, 3-aims)`))) +
-        scale_fill_manual("SID", values = c("gray", "yellow", "yellow", "yellow")) +
-        scale_color_manual(values = c("gray", "blue")) +
-        xlab(xvar_name) +
-        ylab(yvar_name) +
-        stat_cor(na.rm=TRUE, label.x.npc = "center", output.type = "text") +
-        theme_classic() +
-        guides(color=FALSE, size=FALSE, fill=FALSE, scale="none")
-
-      ggplotly(p, tooltip = "text")
-      
+      plot_ly(data = plotdata(), 
+              x = ~get(input$x), 
+              y = ~get(input$y),
+              name = "",
+              type = "scatter",
+              mode = "markers",
+              color = ~`SIDS (1-car, 2-pac, 3-aims)`,
+              colors = c("gray", "yellow"),
+              stroke = ~LDC,
+              strokes = c("gray", "blue"),
+              marker = list(size = 12),
+              text = ~paste0("Country: ", `Country Name`, sep=" ")) |>
+        layout(xaxis = list(title = xvar_name),
+               yaxis = list(title = yvar_name),
+               #legend=list(title=list(text='<b> Small Island Developing State </b>')),
+               showlegend=FALSE)
     })
     
     output$figure_2 <- renderTable({
